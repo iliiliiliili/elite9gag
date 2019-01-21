@@ -77,7 +77,15 @@ function printMeme (meme) {
 	
 	let comments = printComments (meme.comments);
 	
-	return `<a href="${meme.content}">+${meme.upVoteCount}</a>\n${meme.title}\n<a href="${meme.url}">Comments:</a>\n${comments}`;
+	return [
+        
+        {message:`<a href="${meme.content}">+${meme.upVoteCount}</a>\n${meme.title}`
+            , options: {parse_mode: 'HTML'}
+        }
+        , {message:`<a href="${meme.url}">Comments:</a>\n${comments}`
+            , options: {parse_mode: 'HTML', disable_web_page_preview: true}
+        }
+    ];
 }
 
 function isShownMeme (meme) {
@@ -91,14 +99,20 @@ async function findMemes () {
 	  
 	let printed = 0;  
 	  
-	memesList.forEach (meme => {
-		
-		if (!isShownMeme (meme)) {
-	  
-			bot.sendMessage(userId, printMeme (meme), {parse_mode : 'HTML'});
-			printed ++;
-		}
-	});
+      
+    for (const meme of memesList) {  
+            
+        if (!isShownMeme (meme)) {
+      
+            const memeMessages = printMeme (meme);
+            
+            for (const memeMessage of memeMessages) {
+      
+                await bot.sendMessage(userId, memeMessage.message, memeMessage.options);
+            }
+            printed ++;
+        }
+    }
 	
 	if (lastIds.length > memesCount * 200) {
 		
